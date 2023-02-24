@@ -2,202 +2,217 @@ import pandas as pd
 from functions import Function
 
 
-_half_division_method_table_cols = ["a", "b", "x", "f(a)", "f(b)", "f(x)", "|a - b|"]
+class RootFindMethod:
+    def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
+        raise Exception("Method isn't overridden")
 
 
-def half_division_method(func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
-    table: list[list] = list()
-    while True:
-        line = [left, right]
+class HalfDivisionMethod(RootFindMethod):
+    _half_division_method_table_cols = ["a", "b", "x", "f(a)", "f(b)", "f(x)", "|a - b|"]
 
-        x = left + (right - left)/2
-        line.append(x)
+    def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
+        table: list[list] = list()
+        while True:
+            line = [left, right]
 
-        at_left = func.at(left)
-        line.append(at_left)
+            x = left + (right - left) / 2
+            line.append(x)
 
-        at_right = func.at(right)
-        line.append(at_right)
+            at_left = func.at(left)
+            line.append(at_left)
 
-        at_x = func.at(x)
-        line.append(at_x)
+            at_right = func.at(right)
+            line.append(at_right)
 
-        interval = right - left
-        line.append(interval)
+            at_x = func.at(x)
+            line.append(at_x)
 
-        table.append(line)
+            interval = right - left
+            line.append(interval)
 
-        if at_left * at_x < 0:
-            right = x
-        else:
-            left = x
+            table.append(line)
 
-        if interval < precision or abs(at_x) < precision:
-            break
+            if at_left * at_x < 0:
+                right = x
+            else:
+                left = x
 
-    return pd.DataFrame(data=table, columns=_half_division_method_table_cols)
+            if interval < precision or abs(at_x) < precision:
+                break
 
-
-_chord_method_table_cols = ["a", "b", "x", "f(a)", "f(b)", "f(x)", "|x_(n+1) - x_n|"]
-
-
-def chord_method(func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
-    table: list[list] = list()
-    last_x = left
-    while True:
-        line = [left, right]
-
-        at_left = func.at(left)
-        at_right = func.at(right)
-
-        x = (left * at_right - right * at_left)/(at_right - at_left)
-        line.append(x)
-
-        line.append(at_left)
-        line.append(at_right)
-
-        at_x = func.at(x)
-        line.append(at_x)
-
-        interval = right - left
-        change = abs(last_x - x)
-        line.append(change)
-
-        table.append(line)
-
-        last_x = x
-
-        if at_left * at_x < 0:
-            right = x
-        else:
-            left = x
-
-        if interval < precision or change < precision or abs(at_x) < precision:
-            break
-
-    return pd.DataFrame(data=table, columns=_chord_method_table_cols)
+        return pd.DataFrame(data=table, columns=self._half_division_method_table_cols)
 
 
-_newton_method_table_cols = ["x_k", "f(x_k)", "f'(x_k)", "x_(k+1)", "|x_(k+1) - x_k|"]
+class ChordMethod(RootFindMethod):
+    _chord_method_table_cols = ["a", "b", "x", "f(a)", "f(b)", "f(x)", "|x_(n+1) - x_n|"]
+
+    def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
+        table: list[list] = list()
+        last_x = left
+        while True:
+            line = [left, right]
+
+            at_left = func.at(left)
+            at_right = func.at(right)
+
+            x = (left * at_right - right * at_left) / (at_right - at_left)
+            line.append(x)
+
+            line.append(at_left)
+            line.append(at_right)
+
+            at_x = func.at(x)
+            line.append(at_x)
+
+            interval = right - left
+            change = abs(last_x - x)
+            line.append(change)
+
+            table.append(line)
+
+            last_x = x
+
+            if at_left * at_x < 0:
+                right = x
+            else:
+                left = x
+
+            if interval < precision or change < precision or abs(at_x) < precision:
+                break
+
+        return pd.DataFrame(data=table, columns=self._chord_method_table_cols)
 
 
-def newton_method(func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
-    table: list[list] = list()
-    x = left if (func.at(left) * func.double_derivative_at(left) > 0) else right
-    while True:
-        line = [x]
+class NewtonMethod(RootFindMethod):
+    _newton_method_table_cols = ["x_k", "f(x_k)", "f'(x_k)", "x_(k+1)", "|x_(k+1) - x_k|"]
 
-        at_x = func.at(x)
-        line.append(at_x)
+    def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
+        table: list[list] = list()
+        x = left if (func.at(left) * func.double_derivative_at(left) > 0) else right
+        while True:
+            line = [x]
 
-        derivative_at_x = func.derivative_at(x)
-        line.append(derivative_at_x)
+            at_x = func.at(x)
+            line.append(at_x)
 
-        step = at_x/derivative_at_x
-        next_x = x - step
-        line.append(next_x)
+            derivative_at_x = func.derivative_at(x)
+            line.append(derivative_at_x)
 
-        change = abs(next_x - x)
-        line.append(change)
+            step = at_x / derivative_at_x
+            next_x = x - step
+            line.append(next_x)
 
-        table.append(line)
+            change = abs(next_x - x)
+            line.append(change)
 
-        x = next_x
+            table.append(line)
 
-        if change < precision or abs(step) < precision or abs(at_x) < precision:
-            break
+            x = next_x
 
-    return pd.DataFrame(data=table, columns=_newton_method_table_cols)
+            if change < precision or abs(step) < precision or abs(at_x) < precision:
+                break
 
-
-_secant_method_table_cols = ["x_(k-1)", "x_k", "x_(k+1)", "f(x_(k+1))", "|x_(k+1) - x_k|"]
-
-
-def secant_method(func: Function, left: float, right: float, precision: float = 1e-4,
-                  first_offset: float = 0.1) -> pd.DataFrame:
-    table: list[list] = list()
-    prev_x = left if (func.at(left) * func.double_derivative_at(left) > 0) else right
-    x = (prev_x + first_offset) if (prev_x == left) else (prev_x - first_offset)
-    while True:
-        line = [prev_x, x]
-
-        at_prev_x = func.at(prev_x)
-        at_x = func.at(x)
-        next_x = x - (x - prev_x)/(at_x - at_prev_x) * at_x
-        line.append(next_x)
-
-        at_next_x = func.at(next_x)
-        line.append(at_next_x)
-
-        change = abs(next_x - x)
-        line.append(change)
-
-        table.append(line)
-
-        prev_x = x
-        x = next_x
-
-        if change < precision or abs(at_next_x) < precision:
-            break
-
-    return pd.DataFrame(data=table, columns=_secant_method_table_cols)
+        return pd.DataFrame(data=table, columns=self._newton_method_table_cols)
 
 
-_simple_iteration_method_table_cols = ["x_k", "x_(k+1)", "f(x_(k+1))", "|x_(k+1) - x_k|"]
+class SecantMethod(RootFindMethod):
+    _secant_method_table_cols = ["x_(k-1)", "x_k", "x_(k+1)", "f(x_(k+1))", "|x_(k+1) - x_k|"]
+
+    def evaluate_root(self, func: Function, left: float, right: float,
+                      precision: float = 1e-4, first_offset: float = 0.1) -> pd.DataFrame:
+        table: list[list] = list()
+        prev_x = left if (func.at(left) * func.double_derivative_at(left) > 0) else right
+        x = (prev_x + first_offset) if (prev_x == left) else (prev_x - first_offset)
+        while True:
+            line = [prev_x, x]
+
+            at_prev_x = func.at(prev_x)
+            at_x = func.at(x)
+            next_x = x - (x - prev_x) / (at_x - at_prev_x) * at_x
+            line.append(next_x)
+
+            at_next_x = func.at(next_x)
+            line.append(at_next_x)
+
+            change = abs(next_x - x)
+            line.append(change)
+
+            table.append(line)
+
+            prev_x = x
+            x = next_x
+
+            if change < precision or abs(at_next_x) < precision:
+                break
+
+        return pd.DataFrame(data=table, columns=self._secant_method_table_cols)
 
 
-def simple_iteration_method(func: Function, left: float, right: float, precision: float = 1e-4,
-                            number_of_steps: int = 10000) -> pd.DataFrame:
-    table: list[list] = list()
+class SimpleIterationMethod(RootFindMethod):
+    _simple_iteration_method_table_cols = ["x_k", "x_(k+1)", "f(x_(k+1))", "|x_(k+1) - x_k|"]
 
-    k = abs(func.derivative_at(left))
-    step = (right - left) / number_of_steps
-    idx = left + step
-    while idx < right + step:
-        k = max(k, abs(func.derivative_at(idx)))
-        idx += step
-    lambda_coefficient = - 1 / k
+    def evaluate_root(self, func: Function, left: float, right: float,
+                      precision: float = 1e-4, number_of_steps: int = 10000) -> pd.DataFrame:
+        table: list[list] = list()
 
-    transformed_func = Function(
-        "x + lambda * f(x)",
-        lambda x: x + lambda_coefficient * func.at(x)
-    )
+        k = abs(func.derivative_at(left))
+        step = (right - left) / number_of_steps
+        idx = left + step
+        while idx < right + step:
+            k = max(k, abs(func.derivative_at(idx)))
+            idx += step
+        lambda_coefficient = - 1 / k
 
-    stopped_x = _try_iteration(func, transformed_func, table, left, right, precision)
-
-    if stopped_x < left or stopped_x > right:
-        table = list()
         transformed_func = Function(
-            "x - lambda * f(x)",
-            lambda x: x - lambda_coefficient * func.at(x)
+            "x + lambda * f(x)",
+            lambda x: x + lambda_coefficient * func.at(x)
         )
-        stopped_x = _try_iteration(func, transformed_func, table, left, right, precision)
+
+        stopped_x = self._try_iteration(func, transformed_func, table, left, right, precision)
 
         if stopped_x < left or stopped_x > right:
-            raise Exception("Simple iteration method is annihilated (mission accomplished)")
+            table = list()
+            transformed_func = Function(
+                "x - lambda * f(x)",
+                lambda x: x - lambda_coefficient * func.at(x)
+            )
+            stopped_x = self._try_iteration(func, transformed_func, table, left, right, precision)
 
-    return pd.DataFrame(data=table, columns=_simple_iteration_method_table_cols)
+            if stopped_x < left or stopped_x > right:
+                raise Exception("Simple iteration method is annihilated (mission accomplished)")
+
+        return pd.DataFrame(data=table, columns=self._simple_iteration_method_table_cols)
+
+    @staticmethod
+    def _try_iteration(func: Function, transformed_func: Function, table: list[list],
+                       left: float, right: float, precision: float) -> float:
+        x = left
+        while left <= x <= right:
+            line = [x]
+
+            next_x = transformed_func.at(x)
+            line.append(next_x)
+
+            at_next_x = func.at(next_x)
+            line.append(at_next_x)
+
+            change = abs(next_x - x)
+            line.append(change)
+
+            table.append(line)
+
+            x = next_x
+
+            if change < precision:
+                break
+        return x
 
 
-def _try_iteration(func: Function, transformed_func: Function, table: list[list],
-                   left: float, right: float, precision: float) -> float:
-    x = left
-    while left <= x <= right:
-        line = [x]
-
-        next_x = transformed_func.at(x)
-        line.append(next_x)
-
-        at_next_x = func.at(next_x)
-        line.append(at_next_x)
-
-        change = abs(next_x - x)
-        line.append(change)
-
-        table.append(line)
-
-        x = next_x
-
-        if change < precision:
-            break
-    return x
+def get_all_methods() -> list[RootFindMethod]:
+    return [
+        HalfDivisionMethod(),
+        ChordMethod(),
+        NewtonMethod(),
+        SecantMethod(),
+        SimpleIterationMethod()
+    ]
