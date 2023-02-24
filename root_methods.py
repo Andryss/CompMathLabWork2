@@ -3,11 +3,17 @@ from functions import Function
 
 
 class RootFindMethod:
+    string: str = ""
+
     def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
         raise Exception("Method isn't overridden")
 
+    def __str__(self):
+        return self.string
+
 
 class HalfDivisionMethod(RootFindMethod):
+    string: str = "half division method"
     _half_division_method_table_cols = ["a", "b", "x", "f(a)", "f(b)", "f(x)", "|a - b|"]
 
     def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
@@ -44,6 +50,7 @@ class HalfDivisionMethod(RootFindMethod):
 
 
 class ChordMethod(RootFindMethod):
+    string: str = "chord method"
     _chord_method_table_cols = ["a", "b", "x", "f(a)", "f(b)", "f(x)", "|x_(n+1) - x_n|"]
 
     def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
@@ -84,6 +91,7 @@ class ChordMethod(RootFindMethod):
 
 
 class NewtonMethod(RootFindMethod):
+    string: str = "newton method"
     _newton_method_table_cols = ["x_k", "f(x_k)", "f'(x_k)", "x_(k+1)", "|x_(k+1) - x_k|"]
 
     def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
@@ -116,6 +124,7 @@ class NewtonMethod(RootFindMethod):
 
 
 class SecantMethod(RootFindMethod):
+    string: str = "secant method"
     _secant_method_table_cols = ["x_(k-1)", "x_k", "x_(k+1)", "f(x_(k+1))", "|x_(k+1) - x_k|"]
 
     def evaluate_root(self, func: Function, left: float, right: float,
@@ -149,6 +158,7 @@ class SecantMethod(RootFindMethod):
 
 
 class SimpleIterationMethod(RootFindMethod):
+    string: str = "simple iteration method"
     _simple_iteration_method_table_cols = ["x_k", "x_(k+1)", "f(x_(k+1))", "|x_(k+1) - x_k|"]
 
     def evaluate_root(self, func: Function, left: float, right: float,
