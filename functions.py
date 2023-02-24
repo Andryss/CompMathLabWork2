@@ -1,10 +1,13 @@
 from typing import Callable
 
 
+# noinspection DuplicatedCode
 class Function:
-    func: Callable[[float], float] = None
+    string: str = ""
+    func: Callable[[float], float] = lambda x: 0
 
-    def __init__(self, f):
+    def __init__(self, s, f):
+        self.string = s
         self.func = f
 
     def at(self, x: float) -> float:
@@ -38,8 +41,28 @@ class Function:
 
 
 def get_polynomial_function() -> Function:
-    return Function(lambda x: -0.38 * x**3 - 3.42 * x**2 + 2.51 * x + 8.75)
+    return Function(
+        "-0.38 * x^3 - 3.42 * x^2 + 2.51 * x + 7.75",
+        lambda x: -0.38 * x**3 - 3.42 * x**2 + 2.51 * x + 8.75
+    )
 
 
-f1 = get_polynomial_function()
-print(f1.double_derivative_at(-3))
+def has_one_root_on_interval(func: Function, left: float, right: float, number_of_intervals: int = 1000) -> bool:
+    assert right > left, "Wrong interval"
+    if (right - left) / number_of_intervals > 0.5:
+        raise Exception("Given interval is too big")
+
+    left_val = func.at(left)
+    right_val = func.at(right)
+
+    if left_val * right_val > 0:
+        return False
+
+    idx = left
+    step = (right - left) / number_of_intervals
+    is_pos_derivative = func.derivative_at(idx) > 0
+    while idx < right:
+        if (func.derivative_at(idx) > 0) ^ is_pos_derivative:
+            return False
+        idx += step
+    return True
