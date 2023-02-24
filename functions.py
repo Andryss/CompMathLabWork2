@@ -1,3 +1,4 @@
+import math
 from typing import Callable
 
 
@@ -39,30 +40,43 @@ class Function:
 
         return 1/3 * left_dd + 1/3 * center_dd + 1/3 * right_dd
 
+    def has_one_root_on_interval(self, left: float, right: float, number_of_intervals_to_split: int = 1000) -> bool:
+        assert right > left, "Wrong interval"
+        if (right - left) / number_of_intervals_to_split > 0.5:
+            raise Exception("Given interval is too big")
 
-def get_polynomial_function() -> Function:
+        left_val = self.at(left)
+        right_val = self.at(right)
+
+        if left_val * right_val > 0:
+            return False
+
+        idx = left
+        step = (right - left) / number_of_intervals_to_split
+        is_pos_derivative = self.derivative_at(idx) > 0
+        while idx < right:
+            if (self.derivative_at(idx) > 0) ^ is_pos_derivative:
+                return False
+            idx += step
+        return True
+
+
+def _get_polynomial_function() -> Function:
     return Function(
         "-0.38 * x^3 - 3.42 * x^2 + 2.51 * x + 7.75",
         lambda x: -0.38 * x**3 - 3.42 * x**2 + 2.51 * x + 8.75
     )
 
 
-def has_one_root_on_interval(func: Function, left: float, right: float, number_of_intervals: int = 1000) -> bool:
-    assert right > left, "Wrong interval"
-    if (right - left) / number_of_intervals > 0.5:
-        raise Exception("Given interval is too big")
+def _get_trigonometric_function() -> Function:
+    return Function(
+        "cos(x^2)",
+        lambda x: math.cos(x ** 2)
+    )
 
-    left_val = func.at(left)
-    right_val = func.at(right)
 
-    if left_val * right_val > 0:
-        return False
-
-    idx = left
-    step = (right - left) / number_of_intervals
-    is_pos_derivative = func.derivative_at(idx) > 0
-    while idx < right:
-        if (func.derivative_at(idx) > 0) ^ is_pos_derivative:
-            return False
-        idx += step
-    return True
+def get_all_functions() -> list[Function]:
+    return [
+        _get_polynomial_function(),
+        _get_trigonometric_function()
+    ]
