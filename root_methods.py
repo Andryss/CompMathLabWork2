@@ -8,6 +8,9 @@ class RootFindMethod:
     def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
         raise Exception("Method isn't overridden")
 
+    def extract_answer(self, result: pd.DataFrame) -> float:
+        raise Exception("Method isn't overridden")
+
     def __str__(self):
         return self.string
 
@@ -47,6 +50,9 @@ class HalfDivisionMethod(RootFindMethod):
                 break
 
         return pd.DataFrame(data=table, columns=self._half_division_method_table_cols)
+
+    def extract_answer(self, result: pd.DataFrame) -> float:
+        return result.values[-1][2]
 
 
 class ChordMethod(RootFindMethod):
@@ -89,6 +95,9 @@ class ChordMethod(RootFindMethod):
 
         return pd.DataFrame(data=table, columns=self._chord_method_table_cols)
 
+    def extract_answer(self, result: pd.DataFrame) -> float:
+        return result.values[-1][2]
+
 
 class NewtonMethod(RootFindMethod):
     string: str = "newton method"
@@ -121,6 +130,9 @@ class NewtonMethod(RootFindMethod):
                 break
 
         return pd.DataFrame(data=table, columns=self._newton_method_table_cols)
+
+    def extract_answer(self, result: pd.DataFrame) -> float:
+        return result.values[-1][3]
 
 
 class SecantMethod(RootFindMethod):
@@ -155,6 +167,9 @@ class SecantMethod(RootFindMethod):
                 break
 
         return pd.DataFrame(data=table, columns=self._secant_method_table_cols)
+
+    def extract_answer(self, result: pd.DataFrame) -> float:
+        return result.values[-1][2]
 
 
 class SimpleIterationMethod(RootFindMethod):
@@ -216,6 +231,9 @@ class SimpleIterationMethod(RootFindMethod):
             if change < precision:
                 break
         return x
+
+    def extract_answer(self, result: pd.DataFrame) -> float:
+        return result.values[-1][1]
 
 
 def get_all_methods() -> list[RootFindMethod]:
