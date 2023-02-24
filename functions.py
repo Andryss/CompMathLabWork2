@@ -60,6 +60,9 @@ class Function:
             idx += step
         return True
 
+    def __str__(self):
+        return "function: (" + self.string + ")"
+
 
 def _get_polynomial_function() -> Function:
     return Function(
