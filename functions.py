@@ -66,7 +66,7 @@ class Function:
 
 def _get_polynomial_function() -> Function:
     return Function(
-        "-0.38 * x^3 - 3.42 * x^2 + 2.51 * x + 7.75",
+        "-0.38 * x^3 - 3.42 * x^2 + 2.51 * x + 8.75",
         lambda x: -0.38 * x**3 - 3.42 * x**2 + 2.51 * x + 8.75
     )
 
