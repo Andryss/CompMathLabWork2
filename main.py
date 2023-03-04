@@ -27,7 +27,7 @@ def read_interval() -> [float, float]:
         interval = [float(x) for x in line.split()]
         if len(interval) != 2 or interval[1] < interval[0]:
             raise Exception("not an interval")
-    except object:
+    except Exception as _:
         interval = read_interval_from_file(line)
     return interval
 
@@ -55,7 +55,7 @@ def read_precision() -> float:
         precision = float(line)
         if precision <= 0:
             raise Exception("precision must be positive")
-    except object:
+    except Exception as _:
         precision = read_precision_from_file(line)
     return precision
 
