@@ -78,8 +78,16 @@ def _get_trigonometric_function() -> Function:
     )
 
 
+def _get_exponential_function() -> Function:
+    return Function(
+        "e^(-x^2/2) - 0.5",
+        lambda x: math.exp(- x**2 / 2) - 0.5
+    )
+
+
 def get_all_functions() -> list[Function]:
     return [
         _get_polynomial_function(),
-        _get_trigonometric_function()
+        _get_trigonometric_function(),
+        _get_exponential_function()
     ]
