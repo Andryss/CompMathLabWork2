@@ -1,5 +1,8 @@
 import sys
+import warnings
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
 
 from functions import *
 from root_methods import *
@@ -96,6 +99,20 @@ def print_result(result: pd.DataFrame, method: RootFindMethod):
     print("\nEnd the final answer is: x =", method.extract_answer(result))
 
 
+def show_plot(function: Function, left: float, right: float, result: pd.DataFrame, method: RootFindMethod):
+    x = np.arange(left, right, (right - left) / 1000)
+    y = np.array([function.at(val) for val in x])
+    warnings.filterwarnings("ignore", category=matplotlib.MatplotlibDeprecationWarning)
+    plt.scatter(x, y)
+    plt.plot([left, right], [0, 0])
+    point, = plt.plot([method.extract_answer(result)], [0], "ro")
+    plt.legend([point], [method.string])
+    plt.title(f'({function.string}) at [{left}, {right}]')
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.show()
+
+
 def run():
     try:
         function: Function = choose_function()
@@ -107,7 +124,9 @@ def run():
 
         precision: float = read_precision()
         method: RootFindMethod = choose_method()
-        print_result(method.evaluate_root(function, left, right, precision), method)
+        result: pd.DataFrame = method.evaluate_root(function, left, right, precision)
+        print_result(result, method)
+        show_plot(function, left, right, result, method)
     except Exception as e:
         print(e, file=sys.stderr)
 
