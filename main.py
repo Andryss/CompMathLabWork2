@@ -99,14 +99,14 @@ def print_result(result: pd.DataFrame, method: RootFindMethod):
     print("\nEnd the final answer is: x =", method.extract_answer(result))
 
 
-def show_plot(function: Function, left: float, right: float,
+def show_plot(function: Function, left: float, right: float, number_of_points: int = 10000,
               result: pd.DataFrame = None, method: RootFindMethod = None):
-    x = np.arange(left, right, (right - left) / 1000)
+    x = np.arange(left, right, (right - left) / number_of_points)
     y = np.array([function.at(val) for val in x])
     warnings.filterwarnings("ignore", category=matplotlib.MatplotlibDeprecationWarning)
     plt.scatter(x, y)
     plt.plot([left, right], [0, 0], "black")
-    if not (result is None and method is None):
+    if result is not None and method is not None:
         point, = plt.plot([method.extract_answer(result)], [0], "ro")
         plt.legend([point], [method.string])
     plt.title(f'({function.string}) at [{left}, {right}]')
@@ -129,7 +129,7 @@ def run():
         method: RootFindMethod = choose_method()
         result: pd.DataFrame = method.evaluate_root(function, left, right, precision)
         print_result(result, method)
-        show_plot(function, left, right, result, method)
+        show_plot(function, left, right, result=result, method=method)
     except Exception as e:
         print(e, file=sys.stderr)
 
