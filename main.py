@@ -99,14 +99,16 @@ def print_result(result: pd.DataFrame, method: RootFindMethod):
     print("\nEnd the final answer is: x =", method.extract_answer(result))
 
 
-def show_plot(function: Function, left: float, right: float, result: pd.DataFrame, method: RootFindMethod):
+def show_plot(function: Function, left: float, right: float,
+              result: pd.DataFrame = None, method: RootFindMethod = None):
     x = np.arange(left, right, (right - left) / 1000)
     y = np.array([function.at(val) for val in x])
     warnings.filterwarnings("ignore", category=matplotlib.MatplotlibDeprecationWarning)
     plt.scatter(x, y)
-    plt.plot([left, right], [0, 0])
-    point, = plt.plot([method.extract_answer(result)], [0], "ro")
-    plt.legend([point], [method.string])
+    plt.plot([left, right], [0, 0], "black")
+    if not (result is None and method is None):
+        point, = plt.plot([method.extract_answer(result)], [0], "ro")
+        plt.legend([point], [method.string])
     plt.title(f'({function.string}) at [{left}, {right}]')
     plt.xlabel("X")
     plt.ylabel("Y")
@@ -119,6 +121,7 @@ def run():
         [left, right] = read_interval()
 
         if not function.has_one_root_on_interval(left, right):
+            show_plot(function, left, right)
             raise Exception("Sorry can't tell you anything about that interval of that function "
                             "(possibly there are 0 or more then 1 roots here)")
 
