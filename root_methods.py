@@ -104,6 +104,7 @@ class NewtonMethod(RootFindMethod):
     _newton_method_table_cols = ["x_k", "f(x_k)", "f'(x_k)", "x_(k+1)", "|x_(k+1) - x_k|"]
 
     def evaluate_root(self, func: Function, left: float, right: float, precision: float = 1e-4) -> pd.DataFrame:
+        NewtonMethod._check_usability(func, left, right, precision)
         table: list[list] = list()
         x = left if (func.at(left) * func.double_derivative_at(left) > 0) else right
         while True:
@@ -133,6 +134,20 @@ class NewtonMethod(RootFindMethod):
 
     def extract_answer(self, result: pd.DataFrame) -> float:
         return result.values[-1][3]
+
+    @staticmethod
+    def _check_usability(func: Function, left: float, right: float, precision: float = 1e-4,
+                         number_of_steps: int = 2000):
+        start, stop = left, right
+        step: float = (right - left) / number_of_steps
+        is_pos_double_derivative = func.double_derivative_at(left) > 0
+        while start < stop:
+            start += step
+            if abs(func.derivative_at(start)) < precision:
+                raise Exception("Can't use method: derivative equal to zero on range")
+            is_pos_cur_double_derivative = func.double_derivative_at(start) > 0
+            if is_pos_double_derivative ^ is_pos_cur_double_derivative:
+                raise Exception("Can't use method: double derivative change sign on range")
 
 
 class SecantMethod(RootFindMethod):
