@@ -93,10 +93,17 @@ def choose_method() -> RootFindMethod:
         raise Exception("can't choose the method: " + e.__str__())
 
 
-def print_result(result: pd.DataFrame, method: RootFindMethod):
+def print_result(result: pd.DataFrame, method: RootFindMethod, function: Function):
     print("\nHere is the computation result:")
+    pd.options.display.max_columns = None
+    pd.options.display.max_rows = None
     print(result)
-    print("\nEnd the final answer is: x =", method.extract_answer(result))
+    answer = method.extract_answer(result)
+    print(f"""
+    End the final answer is: x = {answer}
+    Function value: f(x) = {function.at(answer)}
+    Number of iterations: {len(result)}
+    """)
 
 
 def show_plot(function: Function, left: float, right: float, number_of_points: int = 10000,
@@ -128,7 +135,7 @@ def run():
         precision: float = read_precision()
         method: RootFindMethod = choose_method()
         result: pd.DataFrame = method.evaluate_root(function, left, right, precision)
-        print_result(result, method)
+        print_result(result, method, function)
         show_plot(function, left, right, result=result, method=method)
     except Exception as e:
         print(e, file=sys.stderr)
