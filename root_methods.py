@@ -46,7 +46,7 @@ class HalfDivisionMethod(RootFindMethod):
             else:
                 left = x
 
-            if interval < precision or abs(at_x) < precision:
+            if interval < precision and abs(at_x) < precision:
                 break
 
         return pd.DataFrame(data=table, columns=self._half_division_method_table_cols)
@@ -90,7 +90,7 @@ class ChordMethod(RootFindMethod):
             else:
                 left = x
 
-            if interval < precision or change < precision or abs(at_x) < precision:
+            if change < precision and abs(at_x) < precision:
                 break
 
         return pd.DataFrame(data=table, columns=self._chord_method_table_cols)
@@ -127,7 +127,7 @@ class NewtonMethod(RootFindMethod):
 
             x = next_x
 
-            if change < precision or abs(step) < precision or abs(at_x) < precision:
+            if change < precision and abs(step) < precision and abs(at_x) < precision:
                 break
 
         return pd.DataFrame(data=table, columns=self._newton_method_table_cols)
@@ -178,7 +178,7 @@ class SecantMethod(RootFindMethod):
             prev_x = x
             x = next_x
 
-            if change < precision or abs(at_next_x) < precision:
+            if change < precision and abs(at_next_x) < precision:
                 break
 
         return pd.DataFrame(data=table, columns=self._secant_method_table_cols)
@@ -204,7 +204,7 @@ class SimpleIterationMethod(RootFindMethod):
         lambda_coefficient = - 1 / k
 
         transformed_func = Function(
-            "x + lambda * f(x)",
+            f"x + ({lambda_coefficient}) * ({func.string})",
             lambda x: x + lambda_coefficient * func.at(x)
         )
 
@@ -213,9 +213,10 @@ class SimpleIterationMethod(RootFindMethod):
         if stopped_x < left or stopped_x > right:
             table = list()
             transformed_func = Function(
-                "x - lambda * f(x)",
+                f"x - ({lambda_coefficient}) * ({func.string})",
                 lambda x: x - lambda_coefficient * func.at(x)
             )
+
             stopped_x = self._try_iteration(func, transformed_func, table, left, right, precision)
 
             if stopped_x < left or stopped_x > right:
