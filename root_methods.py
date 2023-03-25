@@ -77,7 +77,6 @@ class ChordMethod(RootFindMethod):
             at_x = func.at(x)
             line.append(at_x)
 
-            interval = right - left
             change = abs(last_x - x)
             line.append(change)
 
