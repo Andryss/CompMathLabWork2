@@ -23,7 +23,6 @@ class SimpleIterationSystemMethod(SystemRootFindMethod):
 
     def evaluate_root(self, system: EquationSystem, intervals: list[list[float]], start: list[float],
                       precision: float = 1e-4, max_iterations: int = 10000) -> pd.DataFrame:
-        SimpleIterationSystemMethod.check_usability(system, intervals)
 
         table_cols = []
         variables_count = system.funcs[0].argc
@@ -39,6 +38,7 @@ class SimpleIterationSystemMethod(SystemRootFindMethod):
         table.append(first_line)
 
         point = start.copy()
+        SimpleIterationSystemMethod.check_usability_at(system, point)
 
         iterations = 0
         while iterations < max_iterations:
@@ -48,12 +48,15 @@ class SimpleIterationSystemMethod(SystemRootFindMethod):
             is_all_less_then_precision = True
             for i in range(variables_count):
                 new_point[i] = system.funcs[i].at(point)
+                if new_point[i] < intervals[i][0] or new_point[i] > intervals[i][1]:
+                    raise Exception(f"Method iterated out of the searching area (new value of variable {i} is {new_point[i]} when interval is {intervals[i]})")
                 line.append(new_point[i])
                 change = abs(point[i] - new_point[i])
                 line.append(change)
                 if change > precision:
                     is_all_less_then_precision = False
 
+            SimpleIterationSystemMethod.check_usability_at(system, point)
             table.append(line)
 
             if is_all_less_then_precision:
@@ -75,42 +78,14 @@ class SimpleIterationSystemMethod(SystemRootFindMethod):
         return answer
 
     @staticmethod
-    def check_usability(system: EquationSystem, intervals: list[list[float]], number_of_steps: int = 1000):
-        if len(system.funcs) != 2:
-            raise Exception("Method isn't prepared for that type of systems")
-
-        step_0 = (intervals[0][1] - intervals[0][0]) / number_of_steps
-        step_1 = (intervals[1][1] - intervals[1][0]) / number_of_steps
-
-        if step_0 > 0.1 or step_1 > 0.1:
-            raise Exception("Given interval is too big to check it (reduce the intervals)")
-
-        start_0 = intervals[0][0]
-        max_part_der_0, max_part_der_1 = 0, 0
-
-        for i in range(number_of_steps + 1):
-            start_1 = intervals[1][0]
-            for j in range(number_of_steps + 1):
-                part_der_0at0 = abs(system.funcs[0].partial_derivative_at([start_0, start_1], 0))
-                part_der_0at1 = abs(system.funcs[0].partial_derivative_at([start_0, start_1], 1))
-                max_part_der_0 = max(max_part_der_0, part_der_0at0 + part_der_0at1)
-
-                part_der_1at0 = abs(system.funcs[1].partial_derivative_at([start_0, start_1], 0))
-                part_der_1at1 = abs(system.funcs[1].partial_derivative_at([start_0, start_1], 1))
-                max_part_der_1 = max(max_part_der_1, part_der_1at0 + part_der_1at1)
-
-                if part_der_0at0 + part_der_0at1 > 1:
-                    raise Exception(f"Cannot use this method: first partial derivative more than 1 "
-                                    f"(equal to {max_part_der_0} at point ({start_0},{start_1}))")
-
-                if part_der_1at0 + part_der_1at1 > 1:
-                    raise Exception(f"Cannot use this method: second partial derivative more than 1 "
-                                    f"(equal to {max_part_der_1} at point ({start_0},{start_1}))")
-
-                start_1 += step_1
-            start_0 += step_0
-
-        # print(max_part_der_0, max_part_der_1)
+    def check_usability_at(system: EquationSystem, point: list[float]):
+        for func_num in range(len(system.funcs)):
+            part_der_sum = 0
+            for var_num in range(len(point)):
+                part_der_sum += abs(system.funcs[func_num].partial_derivative_at(point, var_num))
+            if part_der_sum > 1:
+                raise Exception(f"Cannot use this method: partial derivative more than 1 "
+                                f"(equal to {part_der_sum} at point {point})")
 
 
 def get_all_system_methods() -> list[SystemRootFindMethod]:
