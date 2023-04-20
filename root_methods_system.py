@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 
 from functions_system import *
@@ -38,7 +37,7 @@ class SimpleIterationSystemMethod(SystemRootFindMethod):
         table.append(first_line)
 
         point = start.copy()
-        SimpleIterationSystemMethod.check_usability_at(system, point)
+        SimpleIterationSystemMethod.check_partial_derivative_at(system, point)
 
         iterations = 0
         while iterations < max_iterations:
@@ -49,14 +48,15 @@ class SimpleIterationSystemMethod(SystemRootFindMethod):
             for i in range(variables_count):
                 new_point[i] = system.funcs[i].at(point)
                 if new_point[i] < intervals[i][0] or new_point[i] > intervals[i][1]:
-                    raise Exception(f"Method iterated out of the searching area (new value of variable {i} is {new_point[i]} when interval is {intervals[i]})")
+                    raise Exception(f"Method iterated out of the searching area "
+                                    f"(new value of variable {i} is {new_point[i]} when interval is {intervals[i]})")
                 line.append(new_point[i])
                 change = abs(point[i] - new_point[i])
                 line.append(change)
                 if change > precision:
                     is_all_less_then_precision = False
 
-            SimpleIterationSystemMethod.check_usability_at(system, point)
+            SimpleIterationSystemMethod.check_partial_derivative_at(system, point)
             table.append(line)
 
             if is_all_less_then_precision:
@@ -65,7 +65,7 @@ class SimpleIterationSystemMethod(SystemRootFindMethod):
             point = new_point
             iterations += 1
 
-        if iterations == max_iterations:
+        if iterations >= max_iterations:
             raise Exception("The maximum number of iterations reached. Method didn't complete")
 
         return pd.DataFrame(data=table, columns=table_cols)
@@ -78,7 +78,7 @@ class SimpleIterationSystemMethod(SystemRootFindMethod):
         return answer
 
     @staticmethod
-    def check_usability_at(system: EquationSystem, point: list[float]):
+    def check_partial_derivative_at(system: EquationSystem, point: list[float]):
         for func_num in range(len(system.funcs)):
             part_der_sum = 0
             for var_num in range(len(point)):
